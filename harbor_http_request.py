@@ -6,7 +6,7 @@ import json
 
 
 
-BASE_URL = "http://10.156.75.43"
+BASE_URL = "http://127.0.0.1"
 REPOSITORIE_BASE_URL = BASE_URL + "/api/repositories"
 PROJECT_BASE_URL = BASE_URL + "/api/projects"
 USER_BASE_URL = BASE_URL + "/api/users"
@@ -21,9 +21,9 @@ ADMIN_COOKIES = ""
 
 timestamp = lambda: int(round(time.time() * 1000))
 
-def signup(params):
-    request_url = BASE_URL + "/" + "signup"
-    payload = dict(principal=params["username"], password=params["password"])
+def signup(username, password, email, realname, comment):
+    request_url = BASE_URL + "/signUp"
+    payload = dict(username=username, password=password, email=email, realname=realname, comment=comment)
     r = requests.post(url=request_url, data=payload)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
@@ -51,6 +51,12 @@ def create_project(project_name, session_id, is_public):
     r = requests.post(PROJECT_BASE_URL, cookies=cookies, json=request_payload)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
+
+def get_project_by_id(project_id, session_id):
+    cookies = dict(beegosessionID=session_id)
+    request_payload = dict(project_id=project_id)
+    r = requests.get(PROJECT_BASE_URL + "/" + project_id, cookies=cookies)
+    return r
 
 def check_project_exist(project_name, session_id):
     cookies = dict(beegosessionID=session_id)
