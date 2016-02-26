@@ -1,25 +1,9 @@
-__author__ = 'xiahao'
-
 import requests
 import time
-import json
 
-
+__author__ = 'xiahao'
 
 BASE_URL = "http://127.0.0.1"
-REPOSITORIE_BASE_URL = BASE_URL + "/api/repositories"
-PROJECT_BASE_URL = BASE_URL + "/api/projects"
-USER_BASE_URL = BASE_URL + "/api/users"
-
-PROJECT_ADMIN_USERNAME = "xiahadfdo"
-PROJECT_USER_PASSWORD = "drgswrtfewrge"
-PROJECT_NAME = "PROJECT45"
-
-
-PROJECT_ADMIN_COOKIES = ""
-ADMIN_COOKIES = ""
-
-timestamp = lambda: int(round(time.time() * 1000))
 
 def signup(username, password, email, realname, comment):
     request_url = BASE_URL + "/signUp"
@@ -36,57 +20,59 @@ def login(username, password):
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
 
-#project api
-def list_project(session_id, is_public=False):
-    request_url = PROJECT_BASE_URL
+
+# project api
+
+# Post()
+def create_project(project_name, session_id):
     cookies = dict(beegosessionID=session_id)
-    params = dict(is_public=is_public, project_name='', timestamp=str(timestamp()))
-    r = requests.get(request_url, cookies=cookies, params=params)
+    request_payload = dict(project_name=project_name)
+    r = requests.post(BASE_URL + "/api/projects", cookies=cookies, json=request_payload)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
 
-def create_project(project_name, session_id, is_public):
-    cookies = dict(beegosessionID=session_id)
-    request_payload = dict(project_name=project_name, public=is_public, timestamp=timestamp())
-    r = requests.post(PROJECT_BASE_URL, cookies=cookies, json=request_payload)
-    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
-    return response
 
-def get_project_by_id(project_id, session_id):
-    cookies = dict(beegosessionID=session_id)
-    request_payload = dict(project_id=project_id)
-    r = requests.get(PROJECT_BASE_URL + "/" + project_id, cookies=cookies)
-    return r
-
+# Head()
 def check_project_exist(project_name, session_id):
     cookies = dict(beegosessionID=session_id)
-    params = dict(project_name=project_name, timestamp=timestamp())
-    r = requests.get(PROJECT_BASE_URL, cookies=cookies, params=params)
+    params = dict(project_name=project_name)
+    r = requests.head(BASE_URL + "/api/projects", cookies=cookies, params=params)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
 
-def update_project(project_id, session_id, public=True):
+# Get()
+def list_project(project_name, is_public, session_id):
     cookies = dict(beegosessionID=session_id)
-    params = dict(timestamp=timestamp())
-    request_url = BASE_URL + "/api/projects/" + str(project_id)
-    request_payload = dict(public=public)
-    r = requests.put(request_url,json=request_payload, params=params, cookies=cookies)
+    params = dict(public=is_public, project_name=project_name)
+    r = requests.get(BASE_URL + "/api/projects", cookies=cookies, params=params)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
 
-#repositories api
+
+# Put() toggle publicity of a project.
+def update_project(project_id, is_public, session_id):
+    cookies = dict(beegosessionID=session_id)
+    request_url = BASE_URL + "/api/projects/" + str(project_id)
+    params = dict(public=is_public)
+    r = requests.put(request_url, cookies=cookies, json=params)
+    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
+    return response
+
+
+# repositories api
 def list_repositories(project_id, query_str, session_id):
     cookies = dict(beegosessionID=session_id)
     params = dict(project_id=project_id, q=query_str)
-    request_url = REPOSITORIE_BASE_URL
+    request_url = BASE_URL + "/api/repositories"
     r = requests.get(request_url, cookies=cookies, params=params)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
+
 
 def list_tags(repo_name, session_id):
     cookies = dict(beegosessionID=session_id)
     params = dict(repo_name=repo_name)
-    request_url = REPOSITORIE_BASE_URL + "/" + "tags"
+    request_url = BASE_URL + "/api/repositories/tags"
     r = requests.get(request_url, cookies=cookies, params=params)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
@@ -95,124 +81,122 @@ def list_tags(repo_name, session_id):
 def get_manifests(repo_name, tag, session_id):
     cookies = dict(beegosessionID=session_id)
     params = dict(repo_name=repo_name, tag=tag)
-    request_url = REPOSITORIE_BASE_URL + "manifests"
+    request_url = BASE_URL + "/api/repositories/manifests"
     r = requests.get(request_url, cookies=cookies, params=params)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
 
-#project members
+
+# project members
 def list_members(project_id, session_id):
     cookies = dict(beegosessionID=session_id)
-    request_url = PROJECT_BASE_URL + "/" + project_id + "/members/list"
+    request_url = BASE_URL + "/api/projects/" + str(project_id) + "/members"
     r = requests.get(request_url, cookies=cookies)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
 
-def view_roles_of_current_member(project_id, session_id):
+
+def get_member_of_project(project_id, user_name, session_id):
     cookies = dict(beegosessionID=session_id)
-    request_url = PROJECT_BASE_URL + "/" + str(project_id) + "/members/current"
-    r = requests.get(request_url, cookies=cookies)
-    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
-    return response
-
-def view_roles_of_member(project_id, user_id, session_id):
-    cookies = dict(beegosessionID=session_id)
-    request_url = PROJECT_BASE_URL + "/" + project_id + user_id
-    r = requests.get(request_url, cookies=cookies)
-    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
-    return response
-
-def add_project_member(project_id, session_id):
-    cookies = dict(beegosessionID=session_id)
-    request_payload = dict(user_name="xiahao", roles="[3]")
-    request_url = PROJECT_BASE_URL + "/" + project_id + "/members/list"
-    r = requests.post(request_url, json=request_payload, cookies=cookies)
-    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
-    return response
-
-def update_role_of_member(project_id, user_id, session_id):
-    cookies = dict(beegosessionID=session_id)
-    request_payload = dict(roles="[2]")
-    request_url = PROJECT_BASE_URL + "/" + project_id + "/members" + "/" + user_id
-    r =requests.put(request_url, data=request_payload, cookies=cookies)
-    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
-    return response
-
-def delete_member(project_id, user_id, session_id):
-    cookies = dict(beegosessionID=session_id)
-    request_url = PROJECT_BASE_URL + "/" + project_id + "/members" + "/" + user_id
-    r =requests.delete(request_url, cookies=cookies)
-    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
-    return response
-
-
-#project access logs
-def list_logs(preject_id, session_id):
-    cookies = dict(beegosessionID=session_id)
-
-    request_url = PROJECT_BASE_URL + "/" + str(preject_id)+  "/" + "logs"
-    r = requests.get(request_url, cookies=cookies,)
-    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
-    return response
-
-def filter_logs(preject_id, session_id, username, keywords, beginTime, endTime):
-    cookies = dict(beegosessionID=session_id)
-    request_url = PROJECT_BASE_URL + "/" + str(preject_id)+  "/" + "logs" + "/" + "filter"
-    request_payload=dict(username=username, preject_id=preject_id, keywords=keywords, beginTime=beginTime, endTime=endTime)
-    r = requests.post(request_url, json=request_payload, cookies=cookies,)
-    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
-    return response
-
-#api for user which has admin role
-def list_user(session_id):
-    cookies = dict(beegosessionID=session_id)
-    params = dict(username="")
-    request_url = USER_BASE_URL
+    request_url = BASE_URL + "/api/projects/" + str(project_id) + "/members"
+    params = dict(username=user_name)
     r = requests.get(request_url, params=params, cookies=cookies)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
 
-def get_user_detail(user_id, session_id):
+
+def check_project_current_member(project_id, session_id):
     cookies = dict(beegosessionID=session_id)
-    request_url = USER_BASE_URL + "/" + user_id
+    request_url = BASE_URL + "/api/projects/" + str(project_id) + "/members/current"
     r = requests.get(request_url, cookies=cookies)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
 
-def get_current_user(session_id):
+
+def add_project_member(project_id, username, roles, session_id):
     cookies = dict(beegosessionID=session_id)
-    request_url = USER_BASE_URL + "/" + "current"
-    r = requests.get(request_url, cookies=cookies)
+    request_payload = dict(user_name=username, roles=roles)
+    request_url = BASE_URL + "/api/projects/" + str(project_id) + "/members"
+    r = requests.post(request_url, json=request_payload, cookies=cookies)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
 
-def update_user(user_id, session_id):
+
+def update_project_member(project_id, user_id, update_role_id, session_id):
     cookies = dict(beegosessionID=session_id)
-    request_url = USER_BASE_URL + "/" + user_id
-    r = requests.put(request_url, cookies=cookies)
+    request_payload = dict(roles=update_role_id)
+    request_url = BASE_URL + "/api/projects/" + str(project_id) + "/members/" + str(user_id)
+    r = requests.put(request_url, json=request_payload, cookies=cookies)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
 
-def delete_user(user_id, session_id):
+
+def delete_project_member(project_id, user_id, session_id):
     cookies = dict(beegosessionID=session_id)
-    request_url = USER_BASE_URL + "/" + user_id
+    request_url = BASE_URL + "/api/projects/" + str(project_id) + "/members/" + str(user_id)
     r = requests.delete(request_url, cookies=cookies)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
 
 
+# project access logs
+def filter_logs(preject_id, username, keywords, begin_timestamp, end_timestamp, session_id):
+    cookies = dict(beegosessionID=session_id)
+    request_url = BASE_URL + "/api/projects/" + str(preject_id) + "/logs/filter"
+    request_payload = dict(username=username, preject_id=preject_id, keywords=keywords, beginTimestamp=begin_timestamp,
+                           endTimestamp=end_timestamp)
+    r = requests.post(request_url, json=request_payload, cookies=cookies)
+    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
+    return response
 
 
+# api for user which has admin role
+def list_user(username, session_id):
+    cookies = dict(beegosessionID=session_id)
+    params = dict(username=username)
+    request_url = BASE_URL + "/api/users"
+    r = requests.get(request_url, params=params, cookies=cookies)
+    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
+    return response
 
 
+def get_user_detail(user_id, session_id):
+    cookies = dict(beegosessionID=session_id)
+    request_url = BASE_URL + "/api/users/" + str(user_id)
+    r = requests.get(request_url, cookies=cookies)
+    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
+    return response
 
 
+def get_current_user(session_id):
+    cookies = dict(beegosessionID=session_id)
+    request_url = BASE_URL + "/api/users/current"
+    r = requests.get(request_url, cookies=cookies)
+    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
+    return response
 
 
+def update_user(user_id, session_id):
+    cookies = dict(beegosessionID=session_id)
+    request_url = BASE_URL + "/api/users/" + str(user_id)
+    r = requests.put(request_url, cookies=cookies)
+    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
+    return response
 
 
+def delete_user(user_id, session_id):
+    cookies = dict(beegosessionID=session_id)
+    request_url = BASE_URL + "/api/users/" + str(user_id)
+    r = requests.delete(request_url, cookies=cookies)
+    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
+    return response
 
 
-
-
-
+#Search API
+def search(query_str, session_id):
+    cookies = dict(beegosessionID=session_id)
+    request_url = BASE_URL + "/api/search"
+    params = dict(q=query_str)
+    r = requests.get(request_url, params=params, cookies=cookies)
+    response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
+    return response
