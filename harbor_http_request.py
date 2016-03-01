@@ -3,7 +3,8 @@ import time
 
 __author__ = 'xiahao'
 
-BASE_URL = "http://127.0.0.1"
+BASE_URL = "http://10.117.170.106"
+
 
 def signup(username, password, email, realname, comment):
     request_url = BASE_URL + "/signUp"
@@ -60,6 +61,9 @@ def update_project(project_id, is_public, session_id):
 
 
 # repositories api
+def push_image(docker_login_and_push):
+    return docker_login_and_push
+
 def list_repositories(project_id, query_str, session_id):
     cookies = dict(beegosessionID=session_id)
     params = dict(project_id=project_id, q=query_str)
@@ -69,18 +73,18 @@ def list_repositories(project_id, query_str, session_id):
     return response
 
 
-def list_tags(repo_name, session_id):
+def list_tags(project_name, repo_name, session_id):
     cookies = dict(beegosessionID=session_id)
-    params = dict(repo_name=repo_name)
+    params = dict(repo_name=project_name + "/" + repo_name)
     request_url = BASE_URL + "/api/repositories/tags"
     r = requests.get(request_url, cookies=cookies, params=params)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
     return response
 
 
-def get_manifests(repo_name, tag, session_id):
+def get_manifests(project_name, repo_name, tag, session_id):
     cookies = dict(beegosessionID=session_id)
-    params = dict(repo_name=repo_name, tag=tag)
+    params = dict(repo_name=project_name + "/" + repo_name, tag=tag)
     request_url = BASE_URL + "/api/repositories/manifests"
     r = requests.get(request_url, cookies=cookies, params=params)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
@@ -199,4 +203,28 @@ def search(query_str, session_id):
     params = dict(q=query_str)
     r = requests.get(request_url, params=params, cookies=cookies)
     response = dict(status_code=r.status_code, response_payload=r.text, response_cookies=r.cookies)
+    return response
+
+#User Exists
+def username_exists(username):
+    request_url = BASE_URL + "/userExists"
+    params = dict(target="username", value=username)
+    r = requests.get(request_url, params=params)
+    response = dict(status_code=r.status_code)
+    return response
+
+def email_exists(email):
+    request_url = BASE_URL + "/userExists"
+    params = dict(target="email", value=email)
+    r = requests.get(request_url, params=params)
+    response = dict(status_code=r.status_code, response_payload=r.text)
+    return response
+
+#Change Password
+def change_password(old_password, password, session_id):
+    cookies = dict(beegosessionID=session_id)
+    request_url = BASE_URL + "/updatePassword"
+    params = dict(old_password = old_password, password=password)
+    r = requests.post(request_url, params=params, cookies=cookies)
+    response = dict(status_code=r.status_code)
     return response
