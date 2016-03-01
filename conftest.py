@@ -3,6 +3,7 @@ import harbor_http_request
 import json
 import time
 import subprocess
+import os
 
 
 def get_session_id(response):
@@ -167,9 +168,11 @@ def log_filter_end_timestamp(request):
 def get_status(response):
     return response["status_code"]
 
-@pytest.fixture(scope="function", params=["docker login -u user1 -p Abc1234 -e user1@vmware.com 127.0.0.1",
-        "docker tag alpine 127.0.0.1/myrepo1/alpine",
-        "docker push 127.0.0.1/myrepo1/alpine", "repo", "image"])
+SERVER_IP = os.getenv("SERVER_IP", "")
+
+@pytest.fixture(scope="function", params=["docker login -u user1 -p Abc1234 -e user1@vmware.com " + SERVER_IP,
+        "docker tag alpine " + SERVER_IP + "/myrepo1/alpine",
+        "docker push " + SERVER_IP + "/myrepo1/alpine", "repo", "image"])
 def repository_related(request, project_name, repository_name, image_tag, login_as_user):
     if request.param == "repo":
         assert get_status(harbor_http_request.list_tags(project_name, repository_name, login_as_user)) == 200

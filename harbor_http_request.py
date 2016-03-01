@@ -1,9 +1,9 @@
 import requests
-import time
+import os
 
 __author__ = 'xiahao'
 
-BASE_URL = "http://10.117.170.106"
+BASE_URL = "http://" + os.getenv("SERVER_IP", "")
 
 
 def signup(username, password, email, realname, comment):
